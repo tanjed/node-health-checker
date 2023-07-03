@@ -8,7 +8,7 @@
 //Module scaffolding
 const handler = {}
 
-const pingHandler = (requestPayload, callback) => {
+handler.pingHandler = (requestPayload, callback) => {
     return callback(200, {
         message : 'pong'
     })
