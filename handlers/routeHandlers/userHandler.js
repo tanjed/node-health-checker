@@ -7,7 +7,7 @@
 
 //Dependenies
 const libStorage = require("../../lib/data")
-const { hashPassword } = require('../../helpers/utilityHelper')
+const { hashPassword, parseJson } = require('../../helpers/utilityHelper')
 
 //Module scaffolding
 const handler = {}
@@ -55,9 +55,95 @@ _user.post = (requestPayload, callback) => {
         })
     })
 }
-_user.get = (requestPayload, callback) => {}
-_user.put = (requestPayload, callback) => {}
-_user.delete = (requestPayload, callback) => {}
+_user.get = (requestPayload, callback) => {
+    const phone = validatePayload(requestPayload.url.searchParams.get('phone'), 'string')
+
+    if (!phone) {
+        return callback(400, { 
+            message : 'Bad request'
+        })
+    }
+
+    libStorage.get(`user-${phone}`, (err, data) => {
+        if(err) {
+            return callback(404, { 
+                message : 'User not found'
+            })
+        }
+        data = JSON.parse(data)
+        delete data.password
+        return callback(200, {
+            user : data
+        })
+    })
+}
+_user.put = (requestPayload, callback) => {
+
+    const phone = validatePayload(requestPayload.url.searchParams.get('phone'), 'string')
+
+    if (!phone) {
+        return callback(400, { 
+            message : 'Bad request'
+        })
+    }
+
+    libStorage.get(`user-${phone}`, (err, data) => {
+        if(err) {
+            return callback(404, { 
+                message : 'User not found'
+            })
+        }
+
+        data = JSON.parse(data)
+        const name = validatePayload(requestPayload.data.name, 'string')
+        const password = validatePayload(requestPayload.data.password, 'string', 6) 
+
+        if(name) data.name = name
+        if(password) data.password = hashPassword(password)
+
+        libStorage.update(`user-${phone}`, data, (err) => {
+            if(err) {
+                return callback(500, { 
+                    message : 'Unable to update'
+                })
+            }
+
+            return callback(200, {
+                message : 'User updated'
+            })
+        })
+    })
+
+}
+_user.delete = (requestPayload, callback) => {
+    const phone = validatePayload(requestPayload.url.searchParams.get('phone'), 'string')
+
+    if (!phone) {
+        return callback(400, { 
+            message : 'Bad request'
+        })
+    }
+
+    libStorage.get(`user-${phone}`, (err, data) => {
+        if(err) {
+            return callback(404, { 
+                message : 'User not found'
+            })
+        }
+
+        libStorage.delete(`user-${phone}`, (err) => {
+            if(err) {
+                return callback(500, { 
+                    message : 'Unable to delete'
+                })
+            }
+
+            return callback(200, {
+                message : 'User deleted'
+            })
+        })
+    })
+}
 
 const validatePayload = (data, type, minLenth = 1) => {
     return typeof data === type && data.length >= minLenth ? data : null
