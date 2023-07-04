@@ -13,6 +13,7 @@ const { hashPassword, parseJson } = require('../../helpers/utilityHelper')
 const handler = {}
 
 handler.allowedMethods = ['get', 'post', 'put', 'delete']
+handler.defaultDataDirectory = '/users'
 const _user = {}
 
 handler.userHandler = (requestPayload, callback) => {
@@ -36,14 +37,14 @@ _user.post = (requestPayload, callback) => {
         })
     }
     
-    libStorage.get(`user-${phone}`, (err) => {
+    libStorage.get(`${handler.defaultDataDirectory}/user-${phone}`, (err) => {
         if(!err){
             return callback(422, { 
                 message : 'User already exists'
             })
         }
 
-        libStorage.create(`user-${phone}`,{name, phone, password : hashPassword(password)}, (err) => {
+        libStorage.create(`${handler.defaultDataDirectory}/user-${phone}`,{name, phone, password : hashPassword(password)}, (err) => {
             if(err) {
                 return callback(500, { 
                     message : 'Unable to create user'
@@ -64,7 +65,7 @@ _user.get = (requestPayload, callback) => {
         })
     }
 
-    libStorage.get(`user-${phone}`, (err, data) => {
+    libStorage.get(`${handler.defaultDataDirectory}/user-${phone}`, (err, data) => {
         if(err) {
             return callback(404, { 
                 message : 'User not found'
@@ -87,7 +88,7 @@ _user.put = (requestPayload, callback) => {
         })
     }
 
-    libStorage.get(`user-${phone}`, (err, data) => {
+    libStorage.get(`${handler.defaultDataDirectory}/user-${phone}`, (err, data) => {
         if(err) {
             return callback(404, { 
                 message : 'User not found'
@@ -101,7 +102,7 @@ _user.put = (requestPayload, callback) => {
         if(name) data.name = name
         if(password) data.password = hashPassword(password)
 
-        libStorage.update(`user-${phone}`, data, (err) => {
+        libStorage.update(`${handler.defaultDataDirectory}/user-${phone}`, data, (err) => {
             if(err) {
                 return callback(500, { 
                     message : 'Unable to update'
@@ -124,14 +125,14 @@ _user.delete = (requestPayload, callback) => {
         })
     }
 
-    libStorage.get(`user-${phone}`, (err, data) => {
+    libStorage.get(`${handler.defaultDataDirectory}/user-${phone}`, (err, data) => {
         if(err) {
             return callback(404, { 
                 message : 'User not found'
             })
         }
 
-        libStorage.delete(`user-${phone}`, (err) => {
+        libStorage.delete(`${handler.defaultDataDirectory}/user-${phone}`, (err) => {
             if(err) {
                 return callback(500, { 
                     message : 'Unable to delete'
