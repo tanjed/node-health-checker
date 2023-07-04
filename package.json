@@ -13,6 +13,7 @@
     "prettier": "^2.8.8"
   },
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js",
+    "start-dev": "nodemon index.js"
   }
 }

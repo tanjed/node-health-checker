@@ -9,6 +9,7 @@ const { StringDecoder } = require('string_decoder')
 const routes = require('../routes')
 const notFoundHandler = require('../handlers/routeHandlers/notFoundHandler')
 const libStorage = require('../lib/data')
+const { parseJson } = require('./utilityHelper')
 
 const handleReqRes = (req, res) => {
     let requestData = ''
@@ -22,8 +23,8 @@ const handleReqRes = (req, res) => {
         requestData += decoder.end()
         const requestPayloads = {
             url :  parseUrl(req),
-            method : req.method.toUpperCase(),
-            data : requestData
+            method : req.method.toLowerCase(),
+            data : parseJson(requestData) 
         }
         
         const pathName = requestPayloads.url.pathname.replace(/^\/+|\/+$/g, '')
@@ -32,7 +33,7 @@ const handleReqRes = (req, res) => {
         chosenRoute(requestPayloads, (statusCode, payload) => {
             statusCode = typeof statusCode === 'number' ? statusCode : 500
             payload = typeof payload === 'object' ? payload : {}
-    
+            res.setHeader('Content-Type', 'application/json');
             res.statusCode = statusCode
             res.end(JSON.stringify(payload))
         })
