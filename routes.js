@@ -10,7 +10,7 @@ const { userHandler } = require('./handlers/routeHandlers/userHandler')
 
 const routes = {
     ping : pingHandler,
-    user : userHandler
+    user : userHandler 
 }
 
 module.exports = routes
