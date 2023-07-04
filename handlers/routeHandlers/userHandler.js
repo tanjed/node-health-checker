@@ -13,7 +13,7 @@ const { hashPassword } = require('../../helpers/utilityHelper')
 const handler = {}
 
 handler.allowedMethods = ['get', 'post', 'put', 'delete']
-handler._user = {}
+const _user = {}
 
 handler.userHandler = (requestPayload, callback) => {
     if (!handler.allowedMethods.includes(requestPayload.method)) {
@@ -22,10 +22,10 @@ handler.userHandler = (requestPayload, callback) => {
         })
     }
 
-    return handler._user[requestPayload.method](requestPayload, callback)
+    return _user[requestPayload.method](requestPayload, callback)
 }
 
-handler._user.post = (requestPayload, callback) => {
+_user.post = (requestPayload, callback) => {
     const name = validatePayload(requestPayload.data.name, 'string')
     const phone = validatePayload(requestPayload.data.phone, 'string')
     const password = validatePayload(requestPayload.data.password, 'string', 6) 
@@ -55,9 +55,9 @@ handler._user.post = (requestPayload, callback) => {
         })
     })
 }
-handler._user.get = (requestPayload, callback) => {}
-handler._user.put = (requestPayload, callback) => {}
-handler._user.delete = (requestPayload, callback) => {}
+_user.get = (requestPayload, callback) => {}
+_user.put = (requestPayload, callback) => {}
+_user.delete = (requestPayload, callback) => {}
 
 const validatePayload = (data, type, minLenth = 1) => {
     return typeof data === type && data.length >= minLenth ? data : null
