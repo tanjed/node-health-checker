@@ -58,6 +58,7 @@ _token.post = (requestPayload, callback) => {
         const tokenPayload = {phone, id: tokenId, expiredAt}
         libStorage.create(`${handler.defaultDataDirectory}/token-${tokenId}`, tokenPayload, (err) => {
             if(err) {
+                console.log(err);
                 return callback(500, { 
                     message : 'Unable to create token'
                 })

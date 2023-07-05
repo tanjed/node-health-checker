@@ -1,33 +1,21 @@
 /**
  * Title: Main Module
- * Description: This script will act as a main module.
+ * Description: This script will act as a Main module.
  * Author: Tanjed
- * Date: 2023-07-03
+ * Date: 2023-07-06
  * 
  */
-
-
 //Dependencies
-const http = require('http')
-const handleReqRes = require('./helpers/reqResHelper')
-
-
-
+const server = require('./server')
+const worker = require('./worker')
 //Module scaffolding
+
 const app = {}
 
-//Confgurations
-app.config = {
-    port : 3000
-}
-
-//Create Server
-app.createServer = () => {
-    const server = http.createServer(handleReqRes)
-    server.listen(app.config.port, () => {
-        console.log(`Listening to port ${app.config.port}`);
-    })
+app.init = () => {
+    server.init()
+    worker.init()
 }
 
 
-app.createServer() 
+app.init()

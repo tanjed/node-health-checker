@@ -30,6 +30,7 @@ _user.post = (requestPayload, callback) => {
     const name = validatePayload(requestPayload.data.name, 'string')
     const phone = validatePayload(requestPayload.data.phone, 'string')
     const password = validatePayload(requestPayload.data.password, 'string', 6) 
+    const checks = []
 
     if (!name || !phone || !password) {
         return callback(400, { 
@@ -44,7 +45,7 @@ _user.post = (requestPayload, callback) => {
             })
         }
 
-        libStorage.create(`${handler.defaultDataDirectory}/user-${phone}`,{name, phone, password : hashPassword(password)}, (err) => {
+        libStorage.create(`${handler.defaultDataDirectory}/user-${phone}`,{name, phone, password : hashPassword(password), checks}, (err) => {
             if(err) {
                 return callback(500, { 
                     message : 'Unable to create user'

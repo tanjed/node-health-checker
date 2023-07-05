@@ -54,6 +54,8 @@ _check.post = (requestPayload, callback) => {
     const method = validatePayload(requestPayload.data.method.toLowerCase(), 'string')
     const errorCodes = validatePayload(requestPayload.data.error_codes, 'object')
     const timeout = validatePayload(requestPayload.data.timeout, 'string')
+    const isDown = false
+    const lastNotifiedAt = null
     
     if (!url || !method || !errorCodes || !errorCodes.length || !timeout) {
         return callback(400, {
@@ -69,7 +71,7 @@ _check.post = (requestPayload, callback) => {
         }
         user = JSON.parse(user)
         const checkId = createRandomString(10)
-        libStorage.create(`checks/${checkId}`, {id : checkId, url : url.href , method, error_codes : errorCodes, timeout}, (err) => {
+        libStorage.create(`checks/${checkId}`, {id : checkId, url : url.href , method, error_codes : errorCodes, timeout, is_down : isDown, last_notified_at : lastNotifiedAt}, (err) => {
             if(err){
                 return callback(500, { 
                     message : 'Unable to create check'
