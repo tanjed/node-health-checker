@@ -5,7 +5,7 @@
  * 
  */
 
-//Dependenies
+//Dependencies
 const libStorage = require("../../lib/data")
 const { hashPassword, parseJson, verifyToken } = require('../../helpers/utilityHelper')
 

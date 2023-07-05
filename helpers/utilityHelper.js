@@ -8,7 +8,6 @@ const crypto = require('crypto')
 const libStorage = require('../lib/data.js')
 const helper = {}
 
-
 helper.hashPassword = (password) => {
     return crypto.Hmac('sha256', 'secretkey')
     .update(password)
@@ -40,6 +39,28 @@ helper.verifyToken = (token, phone, callback) => {
         return callback(token.phone == phone && token.expiredAt > Date.now())
     })
 }
+
+helper.validatePayload = (data, type, minLength = 1) => {
+    if(type == 'url') {
+        try{
+            return new URL(data)
+        }
+        catch{
+            return null
+        }
+    }
+    else if(type == 'object') {
+        return typeof data === type ? data : {}
+    }
+    else if(type == 'boolean'){
+        data = JSON.parse(data.toLowerCase())
+        return typeof data === type
+    }
+    else{
+        return typeof data === type && data.length >= minLength ? data : null
+    } 
+}
+
 
 
 module.exports = helper

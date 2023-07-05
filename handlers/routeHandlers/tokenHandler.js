@@ -5,9 +5,9 @@
  * 
  */
 
-//Dependenies
+//Dependencies
 const libStorage = require("../../lib/data")
-const { hashPassword, parseJson, createRandomString , verifyToken} = require('../../helpers/utilityHelper')
+const { hashPassword, parseJson, createRandomString , verifyToken, validatePayload} = require('../../helpers/utilityHelper')
 const userDefaultDataDirectory = require('../../handlers/routeHandlers/userHandler').defaultDataDirectory
 
 
@@ -54,7 +54,7 @@ _token.post = (requestPayload, callback) => {
         }
 
         const tokenId = createRandomString(20)
-        const expiredAt = Date.now() + 1 * 60 * 1000
+        const expiredAt = Date.now() + 10 * 60 * 1000
         const tokenPayload = {phone, id: tokenId, expiredAt}
         libStorage.create(`${handler.defaultDataDirectory}/token-${tokenId}`, tokenPayload, (err) => {
             if(err) {
@@ -172,14 +172,6 @@ _token.delete = (requestPayload, callback) => {
         })
 
     })
-}
-
-const validatePayload = (data, type, minLenth = 1) => {
-    if(type == 'boolean'){
-        data = JSON.parse(data.toLowerCase())
-        return typeof data === type
-    }
-    return typeof data === type && data.length >= minLenth ? data : null
 }
 
 

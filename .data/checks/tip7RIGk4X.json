@@ -1,0 +1,10 @@
+{
+    "id": "tip7RIGk4X",
+    "url": "https://www.google.com/?name=tanjed",
+    "method": "get",
+    "error_codes": [
+        500,
+        504
+    ],
+    "timeout": "1"
+}
