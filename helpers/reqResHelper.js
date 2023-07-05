@@ -24,7 +24,8 @@ const handleReqRes = (req, res) => {
         const requestPayloads = {
             url :  parseUrl(req),
             method : req.method.toLowerCase(),
-            data : parseJson(requestData) 
+            data : parseJson(requestData),
+            headers : req.headers
         }
         
         const pathName = requestPayloads.url.pathname.replace(/^\/+|\/+$/g, '')

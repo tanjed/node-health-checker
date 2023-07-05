@@ -5,7 +5,7 @@
  */
 
 const crypto = require('crypto')
-
+const libStorage = require('../lib/data.js')
 const helper = {}
 
 
@@ -31,6 +31,14 @@ helper.createRandomString = (length) => {
       result += characters.charAt(Math.floor(Math.random() * characters.length))
     }
     return result;
+}
+
+helper.verifyToken = (token, phone, callback) => {
+    libStorage.get(`tokens/token-${token}`, (err, token) => {
+        if (err) return callback(false)
+        token = JSON.parse(token)
+        return callback(token.phone == phone && token.expiredAt > Date.now())
+    })
 }
 
 

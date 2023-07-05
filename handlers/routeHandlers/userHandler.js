@@ -7,12 +7,12 @@
 
 //Dependenies
 const libStorage = require("../../lib/data")
-const { hashPassword, parseJson } = require('../../helpers/utilityHelper')
+const { hashPassword, parseJson, verifyToken } = require('../../helpers/utilityHelper')
 
 //Module scaffolding
 const handler = {}
 
-handler.allowedMethods = ['get', 'post', 'put', 'delete']
+handler.allowedMethods = ['post', 'put', /*'delete', 'get'*/]
 handler.defaultDataDirectory = '/users'
 const _user = {}
 
@@ -56,98 +56,110 @@ _user.post = (requestPayload, callback) => {
         })
     })
 }
-_user.get = (requestPayload, callback) => {
-    const phone = validatePayload(requestPayload.url.searchParams.get('phone'), 'string')
+// _user.get = (requestPayload, callback) => {
+//     const phone = validatePayload(requestPayload.url.searchParams.get('phone'), 'string')
 
-    if (!phone) {
-        return callback(400, { 
-            message : 'Bad request'
-        })
-    }
+//     if (!phone) {
+//         return callback(400, { 
+//             message : 'Bad request'
+//         })
+//     }
 
-    libStorage.get(`${handler.defaultDataDirectory}/user-${phone}`, (err, data) => {
-        if(err) {
-            return callback(404, { 
-                message : 'User not found'
-            })
-        }
-        data = JSON.parse(data)
-        delete data.password
-        return callback(200, {
-            user : data
-        })
-    })
-}
+//     libStorage.get(`${handler.defaultDataDirectory}/user-${phone}`, (err, data) => {
+//         if(err) {
+//             return callback(404, { 
+//                 message : 'User not found'
+//             })
+//         }
+//         data = JSON.parse(data)
+//         delete data.password
+//         return callback(200, {
+//             user : data
+//         })
+//     })
+// }
 _user.put = (requestPayload, callback) => {
 
-    const phone = validatePayload(requestPayload.url.searchParams.get('phone'), 'string')
-
-    if (!phone) {
-        return callback(400, { 
-            message : 'Bad request'
-        })
-    }
-
-    libStorage.get(`${handler.defaultDataDirectory}/user-${phone}`, (err, data) => {
+    const id = validatePayload(requestPayload.headers._token, 'string')
+  
+    libStorage.get(`tokens/token-${id}`, (err, data) => {
         if(err) {
             return callback(404, { 
-                message : 'User not found'
+                message : 'Invalid token'
             })
         }
-
         data = JSON.parse(data)
-        const name = validatePayload(requestPayload.data.name, 'string')
-        const password = validatePayload(requestPayload.data.password, 'string', 6) 
-
-        if(name) data.name = name
-        if(password) data.password = hashPassword(password)
-
-        libStorage.update(`${handler.defaultDataDirectory}/user-${phone}`, data, (err) => {
-            if(err) {
-                return callback(500, { 
-                    message : 'Unable to update'
+        verifyToken(id, data.phone, (isTokenVerified) => {
+            if (!isTokenVerified) {
+                return callback(403, { 
+                    message : 'Token expired'
                 })
             }
 
-            return callback(200, {
-                message : 'User updated'
-            })
-        })
-    })
+            libStorage.get(`users/user-${data.phone}`, (err, data) => {
+                if(err) {
+                    return callback(404, { 
+                        message : 'Invalid user'
+                    })
+                }
 
-}
-_user.delete = (requestPayload, callback) => {
-    const phone = validatePayload(requestPayload.url.searchParams.get('phone'), 'string')
+                data = JSON.parse(data)
+                const name = validatePayload(requestPayload.data.name, 'string')
+                const password = validatePayload(requestPayload.data.password, 'string', 6) 
 
-    if (!phone) {
-        return callback(400, { 
-            message : 'Bad request'
-        })
-    }
+                if(name) data.name = name
+                if(password) data.password = hashPassword(password)
 
-    libStorage.get(`${handler.defaultDataDirectory}/user-${phone}`, (err, data) => {
-        if(err) {
-            return callback(404, { 
-                message : 'User not found'
-            })
-        }
+                libStorage.update(`${handler.defaultDataDirectory}/user-${data.phone}`, data, (err) => {
+                    if(err) {
+                        return callback(500, { 
+                            message : 'Unable to update'
+                        })
+                    }
 
-        libStorage.delete(`${handler.defaultDataDirectory}/user-${phone}`, (err) => {
-            if(err) {
-                return callback(500, { 
-                    message : 'Unable to delete'
+                    return callback(200, {
+                        message : 'User updated'
+                    })
                 })
-            }
-
-            return callback(200, {
-                message : 'User deleted'
             })
-        })
-    })
-}
 
-const validatePayload = (data, type, minLenth = 1) => {
-    return typeof data === type && data.length >= minLenth ? data : null
+        })
+
+    })
+
+}
+// _user.delete = (requestPayload, callback) => {
+//     const phone = validatePayload(requestPayload.url.searchParams.get('phone'), 'string')
+
+//     if (!phone) {
+//         return callback(400, { 
+//             message : 'Bad request'
+//         })
+//     }
+
+//     libStorage.get(`${handler.defaultDataDirectory}/user-${phone}`, (err, data) => {
+//         if(err) {
+//             return callback(404, { 
+//                 message : 'User not found'
+//             })
+//         }
+
+//         libStorage.delete(`${handler.defaultDataDirectory}/user-${phone}`, (err) => {
+//             if(err) {
+//                 return callback(500, { 
+//                     message : 'Unable to delete'
+//                 })
+//             }
+
+//             return callback(200, {
+//                 message : 'User deleted'
+//             })
+//         })
+//     })
+// }
+
+const validatePayload = (data, type, minLength = 1) => {
+    return typeof data === type && data.length >= minLength ? data : null
 }
 
 
