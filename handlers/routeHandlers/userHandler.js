@@ -13,7 +13,6 @@ const { hashPassword, parseJson, verifyToken } = require('../../helpers/utilityH
 const handler = {}
 
 handler.allowedMethods = ['post', 'put', /*'delete', 'get'*/]
-handler.defaultDataDirectory = '/users'
 const _user = {}
 
 handler.userHandler = (requestPayload, callback) => {
@@ -38,22 +37,22 @@ _user.post = (requestPayload, callback) => {
         })
     }
     
-    libStorage.get(`${handler.defaultDataDirectory}/user-${phone}`, (err) => {
+    libStorage.get(`${process.env.USER_DATA_DIR}/${phone}`, (err) => {
         if(!err){
             return callback(422, { 
                 message : 'User already exists'
             })
         }
 
-        libStorage.create(`${handler.defaultDataDirectory}/user-${phone}`,{name, phone, password : hashPassword(password), checks}, (err) => {
+        libStorage.create(`${process.env.USER_DATA_DIR}/${phone}`,{name, phone, password : hashPassword(password), checks}, (err) => {
             if(err) {
                 return callback(500, { 
                     message : 'Unable to create user'
                 })
             }
             return callback(200, { 
-                message : 'User created successfully'
-            })
+                message : 'User created successfully' 
+            }) 
         })
     })
 }
@@ -83,7 +82,7 @@ _user.put = (requestPayload, callback) => {
 
     const id = validatePayload(requestPayload.headers._token, 'string')
   
-    libStorage.get(`tokens/token-${id}`, (err, data) => {
+    libStorage.get(`${process.env.TOKEN_DATA_DIR}/${id}`, (err, data) => {
         if(err) {
             return callback(404, { 
                 message : 'Invalid token'
@@ -97,7 +96,7 @@ _user.put = (requestPayload, callback) => {
                 })
             }
 
-            libStorage.get(`users/user-${data.phone}`, (err, data) => {
+            libStorage.get(`${process.env.USER_DATA_DIR}/${data.phone}`, (err, data) => {
                 if(err) {
                     return callback(404, { 
                         message : 'Invalid user'
@@ -111,7 +110,7 @@ _user.put = (requestPayload, callback) => {
                 if(name) data.name = name
                 if(password) data.password = hashPassword(password)
 
-                libStorage.update(`${handler.defaultDataDirectory}/user-${data.phone}`, data, (err) => {
+                libStorage.update(`${process.env.USER_DATA_DIR}/${data.phone}`, data, (err) => {
                     if(err) {
                         return callback(500, { 
                             message : 'Unable to update'

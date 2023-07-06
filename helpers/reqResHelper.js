@@ -8,7 +8,6 @@
 const { StringDecoder } = require('string_decoder')
 const routes = require('../routes')
 const notFoundHandler = require('../handlers/routeHandlers/notFoundHandler')
-const libStorage = require('../lib/data')
 const { parseJson } = require('./utilityHelper')
 
 const handleReqRes = (req, res) => {

@@ -17,15 +17,15 @@ const handleReqRes = require('./helpers/reqResHelper')
 const app = {}
 
 //Configurations
-app.config = {
-    port : 3000
-}
+// app.config = {
+//     port : 3000
+// }
 
 //Create Server
 app.init = () => {
     const server = http.createServer(handleReqRes)
-    server.listen(app.config.port, () => {
-        console.log(`Listening to port ${app.config.port}`);
+    server.listen(process.env.APP_PORT, () => {
+        console.log(`Listening to port ${process.env.APP_PORT}`);
     })
 }
 

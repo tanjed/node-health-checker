@@ -2,3 +2,4 @@ node_modules
 .data/users/*
 .data/tokens/*
 .data/checks/*
+.env

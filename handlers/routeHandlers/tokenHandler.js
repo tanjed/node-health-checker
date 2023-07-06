@@ -8,14 +8,12 @@
 //Dependencies
 const libStorage = require("../../lib/data")
 const { hashPassword, parseJson, createRandomString , verifyToken, validatePayload} = require('../../helpers/utilityHelper')
-const userDefaultDataDirectory = require('../../handlers/routeHandlers/userHandler').defaultDataDirectory
 
 
 //Module scaffolding
 const handler = {}
 
 handler.allowedMethods = ['get', 'post', 'put', 'delete']
-handler.defaultDataDirectory = '/tokens'
 const _token = {}
 
 handler.tokenHandler = (requestPayload, callback) => {
@@ -39,7 +37,7 @@ _token.post = (requestPayload, callback) => {
         })
     }
     
-    libStorage.get(`${userDefaultDataDirectory}/user-${phone}`, (err, user) => {
+    libStorage.get(`${process.env.USER_DATA_DIR}/${phone}`, (err, user) => {
         if(err){
             return callback(422, { 
                 message : 'User not found'
@@ -54,9 +52,9 @@ _token.post = (requestPayload, callback) => {
         }
 
         const tokenId = createRandomString(20)
-        const expiredAt = Date.now() + 10 * 60 * 1000
+        const expiredAt = Date.now() + process.env.AUTH_TOKEN_TTL * 60 * 1000
         const tokenPayload = {phone, id: tokenId, expiredAt}
-        libStorage.create(`${handler.defaultDataDirectory}/token-${tokenId}`, tokenPayload, (err) => {
+        libStorage.create(`${process.env.TOKEN_DATA_DIR}/${tokenId}`, tokenPayload, (err) => {
             if(err) {
                 console.log(err);
                 return callback(500, { 
@@ -96,7 +94,7 @@ _token.post = (requestPayload, callback) => {
 //Refresh Token
 _token.put = (requestPayload, callback) => {
 
-    const id = validatePayload(requestPayload.url.searchParams.get('id'), 'string')
+    const id = validatePayload(requestPayload.headers._token, 'string')
     const extend = validatePayload(requestPayload.url.searchParams.get('extend'), 'boolean')
 
     if (!id) {
@@ -105,7 +103,7 @@ _token.put = (requestPayload, callback) => {
         })
     }
 
-    libStorage.get(`${handler.defaultDataDirectory}/token-${id}`, (err, data) => {
+    libStorage.get(`${process.env.TOKEN_DATA_DIR}/${id}`, (err, data) => {
         if(err) {
             return callback(404, { 
                 message : 'Token not found'
@@ -120,7 +118,7 @@ _token.put = (requestPayload, callback) => {
         
         data = JSON.parse(data)
         data.expiredAt = Date.now() + 60 * 60 * 1000
-        libStorage.update(`${handler.defaultDataDirectory}/token-${id}`, data, (err) => {
+        libStorage.update(`${process.env.TOKEN_DATA_DIR}/${id}`, data, (err) => {
             if(err) {
                 return callback(500, { 
                     message : 'Unable to update'
@@ -145,7 +143,7 @@ _token.delete = (requestPayload, callback) => {
         })
     }
 
-    libStorage.get(`${handler.defaultDataDirectory}/token-${id}`, (err, data) => {
+    libStorage.get(`${process.env.TOKEN_DATA_DIR}/${id}`, (err, data) => {
         if(err) {
             return callback(404, { 
                 message : 'Invalid Token'
@@ -159,7 +157,7 @@ _token.delete = (requestPayload, callback) => {
                 })
             }
 
-            libStorage.delete(`${handler.defaultDataDirectory}/token-${id}`, (err) => {
+            libStorage.delete(`${process.env.TOKEN_DATA_DIR}/${id}`, (err) => {
                 if(err) {
                     return callback(500, { 
                         message : 'Unable to delete'

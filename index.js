@@ -6,6 +6,7 @@
  * 
  */
 //Dependencies
+require('dotenv').config();
 const server = require('./server')
 const worker = require('./worker')
 //Module scaffolding

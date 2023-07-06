@@ -14,9 +14,9 @@ const libStorage = require('../../lib/data')
 const _check = {}
 const handler = {}
 
-handler.config = {
-    maxCheck : 2
-}
+// handler.config = {
+//     maxCheck : 2
+// }
 
 handler.allowedMethods = ['post', 'put', 'delete']
 
@@ -29,7 +29,7 @@ handler.checkHandler = (requestPayload, callback) => {
 
     const id = validatePayload(requestPayload.headers._token, 'string')
 
-    libStorage.get(`tokens/token-${id}`, (err, data) => {
+    libStorage.get(`${process.env.TOKEN_DATA_DIR}/${id}`, (err, data) => {
         if(err) {
             return callback(404, { 
                 message : 'Token not found'
@@ -63,7 +63,7 @@ _check.post = (requestPayload, callback) => {
         })
     }
 
-    libStorage.get(`users/user-${requestPayload.authenticated_user}`, (err, user) => {
+    libStorage.get(`${process.env.USER_DATA_DIR}/${requestPayload.authenticated_user}`, (err, user) => {
         if(err){
             return callback(422, { 
                 message : 'User not found'
@@ -71,7 +71,7 @@ _check.post = (requestPayload, callback) => {
         }
         user = JSON.parse(user)
         const checkId = createRandomString(10)
-        libStorage.create(`checks/${checkId}`, {id : checkId, url : url.href , method, error_codes : errorCodes, timeout, is_down : isDown, last_notified_at : lastNotifiedAt}, (err) => {
+        libStorage.create(`${process.env.CHECK_DATA_DIR}/${checkId}`, {id : checkId, url : url.href , method, error_codes : errorCodes, timeout, is_down : isDown, last_notified_at : lastNotifiedAt}, (err) => {
             if(err){
                 return callback(500, { 
                     message : 'Unable to create check'
@@ -79,7 +79,7 @@ _check.post = (requestPayload, callback) => {
             }
 
             const userChecks = typeof user.checks == 'undefined' ? [] : user.checks
-            if (userChecks.length >= handler.config.maxCheck) {
+            if (userChecks.length >= process.env.MAX_NUMBER_OF_CHECKS) {
                 return callback(422, { 
                     message : 'Max check reached'
                 })
@@ -87,7 +87,7 @@ _check.post = (requestPayload, callback) => {
             userChecks.push(checkId)
             user.checks = userChecks
 
-            libStorage.update(`users/user-${user.phone}`, user, (err) => {
+            libStorage.update(`${process.env.USER_DATA_DIR}/${user.phone}`, user, (err) => {
                 if(err) {
                     return callback(500, { 
                         message : 'Unable to attach user check'
@@ -109,7 +109,7 @@ _check.put = (requestPayload, callback) => {
     const errorCodes = typeof requestPayload.data.error_codes == 'undefined' ? {} : validatePayload(requestPayload.data.error_codes, 'object')
     const timeout = typeof requestPayload.data.timeout == 'undefined' ? null : validatePayload(requestPayload.data.timeout, 'string')
 
-    libStorage.get(`checks/${checkId}`, (err, check) => {
+    libStorage.get(`${process.env.CHECK_DATA_DIR}/${checkId}`, (err, check) => {
         if (err) {
             return callback(404, {
                 message : 'Check not found'
@@ -121,7 +121,7 @@ _check.put = (requestPayload, callback) => {
         if (errorCodes && errorCodes.length) check.error_codes = errorCodes
         if (timeout) check.timeout = timeout
 
-        libStorage.update(`checks/${checkId}`, check, (err) => {
+        libStorage.update(`${process.env.CHECK_DATA_DIR}/${checkId}`, check, (err) => {
             if(err) {
                 return callback(500, { 
                     message : 'Unable to update'
@@ -137,13 +137,13 @@ _check.put = (requestPayload, callback) => {
 _check.delete = (requestPayload, callback) => {
     const checkId = requestPayload.url.searchParams.get('check_id')
 
-    libStorage.get(`checks/${checkId}`, (err, data) => {
+    libStorage.get(`${process.env.CHECK_DATA_DIR}/${checkId}`, (err, data) => {
         if(err) {
             return callback(404, { 
                 message : 'Invalid check id'
             })
         }
-        libStorage.get(`users/user-${requestPayload.authenticated_user}`, (err, user) => {
+        libStorage.get(`${process.env.USER_DATA_DIR}/${requestPayload.authenticated_user}`, (err, user) => {
             if(err) {
                 return callback(403, { 
                     message : 'Invalid user'
@@ -156,7 +156,7 @@ _check.delete = (requestPayload, callback) => {
                 return item !== checkId
             })
             user.checks = userChecks
-            libStorage.update(`users/user-${requestPayload.authenticated_user}`, user, (err) => {
+            libStorage.update(`${process.env.USER_DATA_DIR}/${requestPayload.authenticated_user}`, user, (err) => {
                 if(err) {
                     return callback(500, { 
                         message : 'Unable to detach user check'
@@ -164,7 +164,7 @@ _check.delete = (requestPayload, callback) => {
                 }
               
     
-                libStorage.delete(`checks/${checkId}`, (err) => {
+                libStorage.delete(`${process.env.CHECK_DATA_DIR}/${checkId}`, (err) => {
                     if(err) {
                         return callback(500, { 
                             message : 'Unable to delete'
@@ -178,7 +178,7 @@ _check.delete = (requestPayload, callback) => {
         })
     })
 }
-_check.list = () => {}
+
 
 
 module.exports = handler
